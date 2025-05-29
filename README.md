@@ -87,6 +87,21 @@ The system consists of six specialized agents working together:
    python main.py --property-id=YOUR_GA4_PROPERTY_ID
    ```
 
+## 🧪 Running the Test Suite
+
+To run the automated tests for WebInsights Assistant:
+
+1. **Install all dependencies** (see Installation section above).
+2. **Run the test suite** from the project root:
+   ```sh
+   python3 -m unittest discover -s tests -p 'test_*.py'
+   ```
+   All tests are asynchronous and use the ADK agent `run` method. The test suite covers agent orchestration, data extraction, processing, insight generation, visualization, Google Analytics integration, and end-to-end flows.
+
+**Note:**
+- The tests do not require real Google Analytics credentials; simulated data is used if credentials are missing.
+- The test files are now located in the `tests/` folder, following Python best practices.
+
 ## 📖 Documentation
 
 For detailed documentation, please see the [documentation.md](documentation.md) file.
