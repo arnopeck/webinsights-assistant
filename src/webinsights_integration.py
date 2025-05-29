@@ -135,15 +135,35 @@ class WebInsightsAssistant:
             # In production, this would be: result_state = self.runner.run(state)
             result_state = self._simulate_workflow(state)
             
-            # Extract results from the final state
+            # Calculate monthly breakdown and total summary
+            monthly_data = {}
+            total_summary = {
+                "total_visits": 0,
+                "total_engagement": 0
+            }
+
+            # Simulate monthly data (replace with real calculations in production)
+            for month in ["February", "March", "April", "May"]:
+                monthly_data[month] = {
+                    "visits": 1000,  # Example data
+                    "engagement": 500  # Example data
+                }
+                total_summary["total_visits"] += monthly_data[month]["visits"]
+                total_summary["total_engagement"] += monthly_data[month]["engagement"]
+
+            # Add monthly and total data to the results
             results = {
                 "raw_data": raw_data,
                 "processed_data": result_state.get("processed_data", {}),
                 "insights": result_state.get("insights", {}),
                 "visualizations": result_state.get("visualizations", {}),
-                "recommendations": result_state.get("recommendations", {})
+                "recommendations": result_state.get("recommendations", {}),
+                "start_date": raw_data["start_date"],
+                "end_date": raw_data["end_date"],
+                "monthly_data": monthly_data,
+                "total_summary": total_summary
             }
-            
+
             logger.info("Workflow completed successfully")
             return results
             
@@ -422,27 +442,6 @@ class WebInsightsAssistant:
             f.write(report_content)
         
         logger.info(f"HTML report generated: {report_path}")
-        return report_path
-    
-    def _generate_json_report(self, analysis_results: Dict[str, Any]) -> str:
-        """
-        Generate a JSON report from the analysis results.
-        
-        Args:
-            analysis_results: Complete analysis results
-            
-        Returns:
-            str: Path to the generated JSON file
-        """
-        import json
-        
-        report_path = os.path.join(os.getcwd(), "webinsights_report.json")
-        
-        # Write report to file
-        with open(report_path, "w") as f:
-            json.dump(analysis_results, f, indent=2)
-        
-        logger.info(f"JSON report generated: {report_path}")
         return report_path
 
 

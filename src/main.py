@@ -41,26 +41,26 @@ def main():
         args.start_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
     if not args.end_date:
         args.end_date = datetime.now().strftime("%Y-%m-%d")
-    
+
     # Crea e configura l'assistente
     logger.info("Avvio di WebInsights Assistant")
     assistant = create_webinsights_assistant(args.credentials)
-    
+
     # Autentica con Google Analytics
     if assistant.authenticate_google_analytics():
         logger.info("Autenticazione con Google Analytics completata con successo")
     else:
         logger.error("Errore durante l'autenticazione con Google Analytics")
         return
-    
+
     # Analizza i dati
     logger.info(f"Analisi dei dati per la proprietà {args.property_id} dal {args.start_date} al {args.end_date}")
     results = assistant.analyze_website_data(args.property_id, args.start_date, args.end_date)
-    
+
     # Genera il report
     logger.info(f"Generazione del report in formato {args.output_format}")
     report_path = assistant.generate_collaborative_report(results, args.output_format)
-    
+
     logger.info(f"Report generato con successo: {report_path}")
     print(f"\nReport generato con successo: {report_path}")
     print(f"Apri il file nel tuo browser per visualizzare il report completo.")
