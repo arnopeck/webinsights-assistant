@@ -214,7 +214,7 @@ class WebInsightsAssistant:
                 .header {{ background-color: #4285F4; color: white; padding: 20px; text-align: center; }}
                 .summary {{ background-color: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 5px; }}
                 .metrics {{ display: flex; justify-content: space-between; margin: 20px 0; }}
-                .metric-card {{ background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex: 1; margin: 0 10px; text-align: center; }}
+                .metric-card {{ background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1 ); flex: 1; margin: 0 10px; text-align: center; }}
                 .chart-container {{ background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin: 20px 0; }}
                 .insights {{ background-color: #e8f0fe; padding: 20px; border-radius: 5px; margin: 20px 0; }}
                 .opportunities {{ background-color: #fef8e8; padding: 20px; border-radius: 5px; margin: 20px 0; }}
@@ -365,5 +365,55 @@ class WebInsightsAssistant:
         return report_path
         
     def _generate_json_report(self, analysis_results: Dict[str, Any]) -> str:
-  
-(Content truncated due to size limit. Use line ranges to read in chunks)
+        """
+        Genera un report JSON dai risultati dell'analisi.
+        
+        Args:
+            analysis_results: Risultati completi dell'analisi
+            
+        Returns:
+            str: Percorso del file JSON generato
+        """
+        import json
+        
+        report_path = os.path.join(os.getcwd(), "webinsights_report.json")
+        
+        # Scrivi il report su file
+        with open(report_path, "w") as f:
+            json.dump(analysis_results, f, indent=2)
+            
+        logger.info(f"Report JSON generato: {report_path}")
+        return report_path
+
+
+# Funzione di utilità per creare un'istanza del WebInsights Assistant
+def create_webinsights_assistant(ga_credentials_path: Optional[str] = None) -> WebInsightsAssistant:
+    """
+    Crea e configura un'istanza del WebInsights Assistant.
+    
+    Args:
+        ga_credentials_path: Percorso del file di credenziali per Google Analytics
+        
+    Returns:
+        WebInsightsAssistant: Istanza configurata del WebInsights Assistant
+    """
+    assistant = WebInsightsAssistant(ga_credentials_path)
+    logger.info("WebInsights Assistant creato e configurato")
+    return assistant
+
+
+if __name__ == "__main__":
+    # Test di base del WebInsights Assistant
+    assistant = create_webinsights_assistant()
+    
+    # Autentica con Google Analytics
+    assistant.authenticate_google_analytics()
+    
+    # Analizza i dati di esempio
+    results = assistant.analyze_website_data("GA4_PROPERTY_ID")
+    
+    # Genera un report
+    report_path = assistant.generate_collaborative_report(results)
+    
+    print(f"WebInsights Assistant inizializzato con successo")
+    print(f"Report generato: {report_path}")

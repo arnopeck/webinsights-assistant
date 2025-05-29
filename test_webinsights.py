@@ -14,13 +14,13 @@ from datetime import datetime, timedelta
 # Aggiungi la directory principale al path per l'importazione dei moduli
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.orchestration_agent import create_orchestration_agent
-from src.data_extraction_agent import create_data_extraction_agent
-from src.data_processing_agent import create_data_processing_agent
-from src.insight_generation_agent import create_insight_generation_agent
-from src.visualization_agent import create_visualization_agent
-from src.google_analytics_integration import create_google_analytics_integration
-from src.webinsights_integration import create_webinsights_assistant
+from orchestration_agent import create_orchestration_agent
+from data_extraction_agent import create_data_extraction_agent
+from data_processing_agent import create_data_processing_agent
+from insight_generation_agent import create_insight_generation_agent
+from visualization_agent import create_visualization_agent
+from google_analytics_integration import create_google_analytics_integration
+from webinsights_integration import create_webinsights_assistant
 
 from google.adk.orchestration import AgentContext
 
