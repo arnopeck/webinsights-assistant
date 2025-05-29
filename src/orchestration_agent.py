@@ -1,103 +1,86 @@
 """
 WebInsights Assistant - Orchestration Agent
 
-Questo modulo implementa l'Orchestration Agent, responsabile del coordinamento
-del flusso di lavoro tra gli altri agenti del sistema WebInsights Assistant.
+This module implements the Orchestration Agent that coordinates the workflow
+between all other agents in the WebInsights Assistant system.
 """
 
 import logging
-from typing import Dict, List, Any, Optional
-from google.adk.orchestration import Agent, AgentContext
-from google.adk.orchestration.agent import AgentResponse
+from typing import Dict, Any, Optional, List
+from pydantic import Field
 
-# Configurazione del logging
+from google.adk import Agent
+
+# Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("OrchestrationAgent")
 
 class OrchestrationAgent(Agent):
     """
-    Orchestration Agent è responsabile del coordinamento del flusso di lavoro
-    tra gli altri agenti del sistema WebInsights Assistant.
+    Orchestration Agent that coordinates the workflow between all other agents.
     
-    Questo agente:
-    1. Interpreta le richieste degli utenti
-    2. Coordina l'esecuzione degli altri agenti
-    3. Compila i risultati in un formato comprensibile
-    4. Gestisce la comunicazione con l'utente
+    This agent:
+    1. Receives user requests
+    2. Coordinates the execution of other agents
+    3. Manages the flow of data between agents
+    4. Personalizes output based on user needs
     """
+    
+    # Define fields explicitly for Pydantic compatibility
+    registered_agents: Dict[str, Agent] = Field(default_factory=dict)
     
     def __init__(self):
-        """Inizializza l'Orchestration Agent."""
-        super().__init__()
-        logger.info("Orchestration Agent inizializzato")
-        self.agents = {}  # Dizionario per tenere traccia degli altri agenti
-        
-    def register_agent(self, agent_name: str, agent: Agent) -> None:
+        """Initialize the Orchestration Agent."""
+        super().__init__(name="OrchestrationAgent")
+        logger.info("Orchestration Agent initialized")
+    
+    def register_agent(self, name: str, agent: Agent) -> None:
         """
-        Registra un agente con l'Orchestration Agent.
+        Register an agent with the Orchestration Agent.
         
         Args:
-            agent_name: Nome dell'agente da registrare
-            agent: Istanza dell'agente da registrare
+            name: Name of the agent
+            agent: Instance of the agent
         """
-        self.agents[agent_name] = agent
-        logger.info(f"Agente '{agent_name}' registrato con successo")
-        
-    def process(self, context: AgentContext) -> AgentResponse:
+        self.registered_agents[name] = agent
+        logger.info(f"Agent '{name}' registered with Orchestration Agent")
+    
+    async def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Elabora la richiesta dell'utente e coordina il flusso di lavoro.
+        Process a request in the agent's context.
         
         Args:
-            context: Contesto dell'agente contenente la richiesta dell'utente
+            state: Current state containing the request data
             
         Returns:
-            AgentResponse: Risposta compilata per l'utente
+            Dict[str, Any]: Updated state with orchestration results
         """
-        user_request = context.get_request()
-        logger.info(f"Elaborazione della richiesta: {user_request}")
+        logger.info("Orchestration Agent processing request")
         
-        # Qui implementeremo la logica di orchestrazione completa
-        # Per ora, restituiamo una risposta di base
+        # Extract request data
+        request_data = state.get("request_data", {})
         
-        return AgentResponse(
-            response=f"Ho ricevuto la tua richiesta: '{user_request}'. "
-                    f"Il sistema WebInsights Assistant è in fase di sviluppo. "
-                    f"Presto sarò in grado di analizzare i tuoi dati web e fornirti insight utili."
-        )
+        # Log the request
+        logger.info(f"Received request: {request_data}")
         
-    def execute_workflow(self, request: str) -> Dict[str, Any]:
-        """
-        Esegue il flusso di lavoro completo in base alla richiesta dell'utente.
+        # Add orchestration metadata to the state
+        state["orchestration"] = {
+            "workflow_id": "analytics_workflow",
+            "start_time": state.get("timestamp", ""),
+            "status": "in_progress"
+        }
         
-        Args:
-            request: Richiesta dell'utente
-            
-        Returns:
-            Dict: Risultati compilati dal flusso di lavoro
-        """
-        results = {}
-        
-        # Questo è un placeholder per il flusso di lavoro completo
-        # Nelle prossime iterazioni, implementeremo la chiamata sequenziale agli altri agenti
-        
-        logger.info("Flusso di lavoro eseguito con successo")
-        return results
+        logger.info("Orchestration Agent completed processing")
+        return state
 
 
-# Funzione di utilità per creare un'istanza dell'Orchestration Agent
 def create_orchestration_agent() -> OrchestrationAgent:
     """
-    Crea e configura un'istanza dell'Orchestration Agent.
+    Create and configure an instance of the Orchestration Agent.
     
     Returns:
-        OrchestrationAgent: Istanza configurata dell'Orchestration Agent
+        OrchestrationAgent: Configured instance of the Orchestration Agent
     """
     agent = OrchestrationAgent()
-    logger.info("Orchestration Agent creato e configurato")
+    logger.info("Orchestration Agent created and configured")
     return agent
-
-
-if __name__ == "__main__":
-    # Test di base dell'Orchestration Agent
-    agent = create_orchestration_agent()
-    print("Orchestration Agent inizializzato con successo")

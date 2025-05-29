@@ -10,7 +10,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 
-from .webinsights_integration import create_webinsights_assistant
+from src.webinsights_integration import create_webinsights_assistant
 
 # Configurazione del logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

@@ -1,247 +1,235 @@
 """
 WebInsights Assistant - Google Analytics Integration
 
-Questo modulo implementa l'integrazione con le API di Google Analytics
-per l'estrazione dei dati reali.
+This module implements the integration with Google Analytics API
+to extract website analytics data for analysis.
 """
 
 import logging
 import os
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 
-# Configurazione del logging
+# Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("GoogleAnalyticsIntegration")
 
 class GoogleAnalyticsIntegration:
     """
-    Classe per l'integrazione con le API di Google Analytics.
+    Google Analytics Integration that connects to the Google Analytics API
+    and extracts website analytics data.
     
-    Questa classe:
-    1. Gestisce l'autenticazione con le API di Google Analytics
-    2. Fornisce metodi per l'estrazione di vari tipi di dati
-    3. Gestisce la formattazione e la conversione dei dati
-    4. Implementa la gestione degli errori e dei limiti di quota
+    This class:
+    1. Handles authentication with Google Analytics
+    2. Extracts traffic data and metrics
+    3. Retrieves traffic sources information
+    4. Gets top pages and content performance
+    5. Provides device and platform breakdown
     """
     
     def __init__(self, credentials_path: Optional[str] = None):
         """
-        Inizializza l'integrazione con Google Analytics.
+        Initialize the Google Analytics Integration.
         
         Args:
-            credentials_path: Percorso del file di credenziali per l'autenticazione
+            credentials_path: Path to the Google Analytics credentials file
         """
         self.credentials_path = credentials_path
-        self.is_authenticated = False
-        logger.info("Integrazione Google Analytics inizializzata")
-        
+        self.authenticated = False
+        logger.info("Google Analytics Integration initialized")
+    
     def authenticate(self) -> bool:
         """
-        Autentica con le API di Google Analytics.
+        Authenticate with Google Analytics.
         
         Returns:
-            bool: True se l'autenticazione ha avuto successo, False altrimenti
-        """
-        # In una implementazione reale, qui utilizzeremmo le credenziali per autenticarci
-        # Per ora, simuliamo un'autenticazione di successo
-        
-        logger.info("Autenticazione con Google Analytics simulata con successo")
-        self.is_authenticated = True
-        return True
-        
-    def get_website_traffic(self, property_id: str, start_date: str, end_date: str) -> Dict[str, Any]:
-        """
-        Estrae i dati sul traffico del sito web.
-        
-        Args:
-            property_id: ID della proprietà Google Analytics
-            start_date: Data di inizio nel formato YYYY-MM-DD
-            end_date: Data di fine nel formato YYYY-MM-DD
-            
-        Returns:
-            Dict: Dati sul traffico del sito web
-        """
-        if not self.is_authenticated:
-            self.authenticate()
-            
-        logger.info(f"Estrazione dati sul traffico per la proprietà {property_id} dal {start_date} al {end_date}")
-        
-        # In una implementazione reale, qui chiameremmo le API di Google Analytics
-        # Per ora, restituiamo dati di esempio
-        
-        return self._get_sample_traffic_data(start_date, end_date)
-        
-    def get_traffic_sources(self, property_id: str, start_date: str, end_date: str) -> Dict[str, Any]:
-        """
-        Estrae i dati sulle fonti di traffico.
-        
-        Args:
-            property_id: ID della proprietà Google Analytics
-            start_date: Data di inizio nel formato YYYY-MM-DD
-            end_date: Data di fine nel formato YYYY-MM-DD
-            
-        Returns:
-            Dict: Dati sulle fonti di traffico
-        """
-        if not self.is_authenticated:
-            self.authenticate()
-            
-        logger.info(f"Estrazione dati sulle fonti di traffico per la proprietà {property_id} dal {start_date} al {end_date}")
-        
-        # In una implementazione reale, qui chiameremmo le API di Google Analytics
-        # Per ora, restituiamo dati di esempio
-        
-        return {
-            "direct": int(1000 * 0.35),
-            "organic": int(1000 * 0.25),
-            "referral": int(1000 * 0.2),
-            "social": int(1000 * 0.15),
-            "email": int(1000 * 0.05)
-        }
-        
-    def get_top_pages(self, property_id: str, start_date: str, end_date: str, limit: int = 10) -> List[Dict[str, Any]]:
-        """
-        Estrae i dati sulle pagine più visitate.
-        
-        Args:
-            property_id: ID della proprietà Google Analytics
-            start_date: Data di inizio nel formato YYYY-MM-DD
-            end_date: Data di fine nel formato YYYY-MM-DD
-            limit: Numero massimo di pagine da restituire
-            
-        Returns:
-            List: Dati sulle pagine più visitate
-        """
-        if not self.is_authenticated:
-            self.authenticate()
-            
-        logger.info(f"Estrazione dati sulle pagine più visitate per la proprietà {property_id} dal {start_date} al {end_date}")
-        
-        # In una implementazione reale, qui chiameremmo le API di Google Analytics
-        # Per ora, restituiamo dati di esempio
-        
-        return [
-            {"path": "/", "pageviews": 400, "avg_time": "00:02:15"},
-            {"path": "/products", "pageviews": 200, "avg_time": "00:01:45"},
-            {"path": "/about", "pageviews": 150, "avg_time": "00:01:20"},
-            {"path": "/contact", "pageviews": 100, "avg_time": "00:00:55"},
-            {"path": "/blog", "pageviews": 150, "avg_time": "00:03:10"}
-        ][:limit]
-        
-    def get_device_breakdown(self, property_id: str, start_date: str, end_date: str) -> Dict[str, int]:
-        """
-        Estrae i dati sulla distribuzione dei dispositivi.
-        
-        Args:
-            property_id: ID della proprietà Google Analytics
-            start_date: Data di inizio nel formato YYYY-MM-DD
-            end_date: Data di fine nel formato YYYY-MM-DD
-            
-        Returns:
-            Dict: Dati sulla distribuzione dei dispositivi
-        """
-        if not self.is_authenticated:
-            self.authenticate()
-            
-        logger.info(f"Estrazione dati sulla distribuzione dei dispositivi per la proprietà {property_id} dal {start_date} al {end_date}")
-        
-        # In una implementazione reale, qui chiameremmo le API di Google Analytics
-        # Per ora, restituiamo dati di esempio
-        
-        return {
-            "desktop": int(1000 * 0.55),
-            "mobile": int(1000 * 0.35),
-            "tablet": int(1000 * 0.1)
-        }
-        
-    def _get_sample_traffic_data(self, start_date: str, end_date: str) -> Dict[str, Any]:
-        """
-        Genera dati di esempio sul traffico del sito web.
-        
-        Args:
-            start_date: Data di inizio nel formato YYYY-MM-DD
-            end_date: Data di fine nel formato YYYY-MM-DD
-            
-        Returns:
-            Dict: Dati di esempio sul traffico del sito web
+            bool: True if authentication was successful, False otherwise
         """
         try:
-            start = datetime.strptime(start_date, "%Y-%m-%d")
-            end = datetime.strptime(end_date, "%Y-%m-%d")
-        except ValueError:
-            logger.error(f"Formato data non valido: {start_date} o {end_date}")
-            start = datetime.now() - timedelta(days=7)
-            end = datetime.now()
+            # In a real implementation, this would use the Google Analytics API
+            # to authenticate with the provided credentials.
+            # For now, we'll simulate the authentication.
             
-        dates = []
-        visitors = []
-        pageviews = []
+            if self.credentials_path and os.path.exists(self.credentials_path):
+                logger.info(f"Authenticating with credentials from {self.credentials_path}")
+                self.authenticated = True
+            else:
+                logger.warning("Credentials file not found, using simulated data")
+                self.authenticated = True  # For demo purposes
+                
+            logger.info("Authentication successful")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Authentication failed: {e}")
+            return False
+    
+    def get_website_traffic(self, property_id: str, start_date: str, end_date: str) -> Dict[str, Any]:
+        """
+        Get website traffic data for the specified period.
         
-        # Genera dati giornalieri di esempio
-        current_date = start
-        while current_date <= end:
-            date_str = current_date.strftime("%Y-%m-%d")
-            dates.append(date_str)
+        Args:
+            property_id: Google Analytics property ID
+            start_date: Start date in YYYY-MM-DD format
+            end_date: End date in YYYY-MM-DD format
             
-            # Valori casuali ma realistici
-            day_of_week = current_date.weekday()
-            base_visitors = 100 if day_of_week < 5 else 70  # Meno traffico nel weekend
-            daily_visitors = base_visitors + (day_of_week * 10)
-            daily_pageviews = daily_visitors * 3.5  # Media di 3.5 pagine per visitatore
-            
-            visitors.append(daily_visitors)
-            pageviews.append(int(daily_pageviews))
-            
-            current_date += timedelta(days=1)
+        Returns:
+            Dict: Website traffic data
+        """
+        logger.info(f"Getting website traffic for property {property_id} from {start_date} to {end_date}")
         
-        # Struttura dati simile a quella di Google Analytics
-        sample_data = {
-            "report_name": "Traffico del sito web",
-            "start_date": start_date,
-            "end_date": end_date,
+        # In a real implementation, this would query the Google Analytics API.
+        # For now, we'll return simulated data.
+        
+        # Simulate traffic data
+        traffic_data = {
+            "report_name": f"Website Traffic Report ({start_date} to {end_date})",
             "metrics": {
-                "visitors": {
-                    "total": sum(visitors),
-                    "daily": dict(zip(dates, visitors))
-                },
-                "pageviews": {
-                    "total": sum(pageviews),
-                    "daily": dict(zip(dates, pageviews))
-                },
-                "pages_per_session": round(sum(pageviews) / sum(visitors), 2)
+                "users": 1234,
+                "new_users": 567,
+                "sessions": 2345,
+                "bounce_rate": 45.67,
+                "avg_session_duration": 120.5,
+                "pageviews": 5678,
+                "pages_per_session": 2.42,
+                "users_by_date": {
+                    "2023-01-01": 220,
+                    "2023-01-02": 245,
+                    "2023-01-03": 263,
+                    "2023-01-04": 280,
+                    "2023-01-05": 226
+                }
             }
         }
         
-        return sample_data
+        return traffic_data
+    
+    def get_traffic_sources(self, property_id: str, start_date: str, end_date: str) -> Dict[str, Any]:
+        """
+        Get traffic sources data for the specified period.
+        
+        Args:
+            property_id: Google Analytics property ID
+            start_date: Start date in YYYY-MM-DD format
+            end_date: End date in YYYY-MM-DD format
+            
+        Returns:
+            Dict: Traffic sources data
+        """
+        logger.info(f"Getting traffic sources for property {property_id} from {start_date} to {end_date}")
+        
+        # Simulate traffic sources data
+        traffic_sources = {
+            "organic": 45.2,
+            "direct": 25.7,
+            "referral": 15.3,
+            "social": 10.5,
+            "email": 3.3,
+            "top_referrers": [
+                {"source": "google.com", "sessions": 450, "conversion_rate": 3.2},
+                {"source": "facebook.com", "sessions": 320, "conversion_rate": 2.1},
+                {"source": "twitter.com", "sessions": 180, "conversion_rate": 1.8},
+                {"source": "linkedin.com", "sessions": 120, "conversion_rate": 4.5},
+                {"source": "instagram.com", "sessions": 90, "conversion_rate": 2.7}
+            ]
+        }
+        
+        return traffic_sources
+    
+    def get_top_pages(self, property_id: str, start_date: str, end_date: str) -> Dict[str, Any]:
+        """
+        Get top pages data for the specified period.
+        
+        Args:
+            property_id: Google Analytics property ID
+            start_date: Start date in YYYY-MM-DD format
+            end_date: End date in YYYY-MM-DD format
+            
+        Returns:
+            Dict: Top pages data
+        """
+        logger.info(f"Getting top pages for property {property_id} from {start_date} to {end_date}")
+        
+        # Simulate top pages data
+        top_pages = {
+            "pages": [
+                {"path": "/", "pageviews": 1200, "avg_time_on_page": 45, "bounce_rate": 35.2},
+                {"path": "/products", "pageviews": 850, "avg_time_on_page": 65, "bounce_rate": 28.7},
+                {"path": "/blog/top-10-tips", "pageviews": 720, "avg_time_on_page": 120, "bounce_rate": 22.5},
+                {"path": "/about", "pageviews": 430, "avg_time_on_page": 50, "bounce_rate": 40.1},
+                {"path": "/contact", "pageviews": 380, "avg_time_on_page": 35, "bounce_rate": 45.8}
+            ],
+            "entry_pages": [
+                {"path": "/", "sessions": 950, "bounce_rate": 38.2},
+                {"path": "/blog/top-10-tips", "sessions": 320, "bounce_rate": 25.7},
+                {"path": "/products", "sessions": 280, "bounce_rate": 30.5}
+            ],
+            "exit_pages": [
+                {"path": "/thank-you", "exits": 320, "exit_rate": 92.5},
+                {"path": "/contact", "exits": 280, "exit_rate": 73.7},
+                {"path": "/", "exits": 250, "exit_rate": 26.3}
+            ]
+        }
+        
+        return top_pages
+    
+    def get_device_breakdown(self, property_id: str, start_date: str, end_date: str) -> Dict[str, Any]:
+        """
+        Get device breakdown data for the specified period.
+        
+        Args:
+            property_id: Google Analytics property ID
+            start_date: Start date in YYYY-MM-DD format
+            end_date: End date in YYYY-MM-DD format
+            
+        Returns:
+            Dict: Device breakdown data
+        """
+        logger.info(f"Getting device breakdown for property {property_id} from {start_date} to {end_date}")
+        
+        # Simulate device breakdown data
+        device_breakdown = {
+            "categories": {
+                "desktop": 42.3,
+                "mobile": 52.7,
+                "tablet": 5.0
+            },
+            "browsers": {
+                "chrome": 64.5,
+                "safari": 18.2,
+                "firefox": 7.8,
+                "edge": 6.5,
+                "other": 3.0
+            },
+            "operating_systems": {
+                "windows": 38.5,
+                "ios": 32.7,
+                "android": 20.3,
+                "macos": 7.2,
+                "linux": 1.3
+            },
+            "screen_resolutions": [
+                {"resolution": "1920x1080", "percentage": 28.5},
+                {"resolution": "375x667", "percentage": 18.7},
+                {"resolution": "1366x768", "percentage": 12.3},
+                {"resolution": "360x640", "percentage": 10.5},
+                {"resolution": "1440x900", "percentage": 8.2}
+            ]
+        }
+        
+        return device_breakdown
 
 
-# Funzione di utilità per creare un'istanza dell'integrazione Google Analytics
 def create_google_analytics_integration(credentials_path: Optional[str] = None) -> GoogleAnalyticsIntegration:
     """
-    Crea e configura un'istanza dell'integrazione Google Analytics.
+    Create and configure an instance of the Google Analytics Integration.
     
     Args:
-        credentials_path: Percorso del file di credenziali per l'autenticazione
+        credentials_path: Path to the Google Analytics credentials file
         
     Returns:
-        GoogleAnalyticsIntegration: Istanza configurata dell'integrazione Google Analytics
+        GoogleAnalyticsIntegration: Configured instance of the Google Analytics Integration
     """
     integration = GoogleAnalyticsIntegration(credentials_path)
-    logger.info("Integrazione Google Analytics creata e configurata")
+    logger.info("Google Analytics Integration created and configured")
     return integration
-
-
-if __name__ == "__main__":
-    # Test di base dell'integrazione Google Analytics
-    integration = create_google_analytics_integration()
-    integration.authenticate()
-    
-    # Test di estrazione dati
-    start_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
-    end_date = datetime.now().strftime("%Y-%m-%d")
-    
-    traffic_data = integration.get_website_traffic("GA4_PROPERTY_ID", start_date, end_date)
-    print(f"Dati sul traffico estratti: {traffic_data['report_name']}")
-    print(f"Visitatori totali: {traffic_data['metrics']['visitors']['total']}")
-    print(f"Pagine visualizzate: {traffic_data['metrics']['pageviews']['total']}")

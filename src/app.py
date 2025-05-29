@@ -1,65 +1,128 @@
 """
-WebInsights Assistant - Main Application
+WebInsights Assistant - App Module
 
-Questo modulo implementa l'applicazione principale che coordina tutti gli agenti
-del sistema WebInsights Assistant.
+This module provides the Flask application for the WebInsights Assistant system,
+enabling web-based access to the analytics insights.
 """
 
 import logging
-from google.adk.orchestration import AgentApp
-from .orchestration_agent import create_orchestration_agent
+import os
+from typing import Dict, Any, Optional
+from datetime import datetime, timedelta
+from flask import Flask, render_template, request, jsonify, redirect, url_for
+from dotenv import load_dotenv
 
-# Configurazione del logging
+from .webinsights_integration import WebInsightsAssistant
+
+# Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("WebInsightsApp")
 
-class WebInsightsApp(AgentApp):
-    """
-    Applicazione principale del WebInsights Assistant che utilizza l'architettura ADK
-    per orchestrare i diversi agenti specializzati.
-    """
-    
-    def __init__(self):
-        """Inizializza l'applicazione WebInsights Assistant."""
-        super().__init__()
-        logger.info("Inizializzazione dell'applicazione WebInsights Assistant")
-        
-        # Creazione e registrazione dell'Orchestration Agent
-        self.orchestration_agent = create_orchestration_agent()
-        self.register_agent("orchestration", self.orchestration_agent)
-        
-        # Nelle prossime iterazioni, qui verranno registrati gli altri agenti:
-        # - Data Extraction Agent
-        # - Data Processing Agent
-        # - Insight Generation Agent
-        # - Visualization Agent
-        # - Recommendation Agent
-        
-        logger.info("Applicazione WebInsights Assistant inizializzata con successo")
-    
-    def run(self):
-        """Esegue l'applicazione WebInsights Assistant."""
-        logger.info("Avvio dell'applicazione WebInsights Assistant")
-        # Qui implementeremo la logica di esecuzione dell'applicazione
-        # Per ora, è solo un placeholder
-        
-        logger.info("Applicazione WebInsights Assistant in esecuzione")
+# Load environment variables
+load_dotenv()
 
+# Create Flask app
+app = Flask(__name__)
 
-def create_app() -> WebInsightsApp:
-    """
-    Crea e configura un'istanza dell'applicazione WebInsights Assistant.
+# Create WebInsights Assistant
+assistant = None
+
+@app.route('/')
+def index():
+    """Render the main dashboard page."""
+    return render_template('index.html')
+
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    """Analyze website data based on form input."""
+    global assistant
     
-    Returns:
-        WebInsightsApp: Istanza configurata dell'applicazione
-    """
-    app = WebInsightsApp()
-    logger.info("Applicazione WebInsights Assistant creata e configurata")
+    # Get form data
+    property_id = request.form.get('property_id') or os.getenv('GA_PROPERTY_ID')
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+    credentials_path = request.form.get('credentials_path') or os.getenv('GA_CREDENTIALS_PATH')
+    
+    # Validate inputs
+    if not property_id:
+        return jsonify({"error": "No Google Analytics property ID provided"}), 400
+    
+    try:
+        # Initialize assistant if not already done
+        if assistant is None:
+            assistant = WebInsightsAssistant(credentials_path)
+            
+            # Authenticate with Google Analytics
+            if not assistant.authenticate_google_analytics():
+                return jsonify({"error": "Failed to authenticate with Google Analytics"}), 401
+        
+        # Analyze website data
+        results = assistant.analyze_website_data(property_id, start_date, end_date)
+        
+        # Generate report
+        report_path = assistant.generate_collaborative_report(results, "html")
+        
+        # Return success response
+        return jsonify({
+            "success": True,
+            "report_path": report_path,
+            "message": "Analysis completed successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error analyzing website data: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/insights', methods=['GET'])
+def get_insights():
+    """API endpoint to get insights for a property."""
+    global assistant
+    
+    # Get query parameters
+    property_id = request.args.get('property_id') or os.getenv('GA_PROPERTY_ID')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    credentials_path = os.getenv('GA_CREDENTIALS_PATH')
+    
+    # Validate inputs
+    if not property_id:
+        return jsonify({"error": "No Google Analytics property ID provided"}), 400
+    
+    try:
+        # Initialize assistant if not already done
+        if assistant is None:
+            assistant = WebInsightsAssistant(credentials_path)
+            
+            # Authenticate with Google Analytics
+            if not assistant.authenticate_google_analytics():
+                return jsonify({"error": "Failed to authenticate with Google Analytics"}), 401
+        
+        # Analyze website data
+        results = assistant.analyze_website_data(property_id, start_date, end_date)
+        
+        # Return insights
+        return jsonify({
+            "insights": results.get("insights", {}),
+            "recommendations": results.get("recommendations", {})
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting insights: {e}")
+        return jsonify({"error": str(e)}), 500
+
+def create_app(test_config=None):
+    """Create and configure the Flask application."""
+    if test_config:
+        app.config.update(test_config)
+    
+    # Ensure the instance folder exists
+    try:
+        os.makedirs(app.instance_path, exist_ok=True)
+    except OSError:
+        pass
+    
     return app
 
-
-if __name__ == "__main__":
-    # Avvio dell'applicazione
+if __name__ == '__main__':
     app = create_app()
-    app.run()
-    print("WebInsights Assistant avviato con successo")
+    app.run(debug=True, host='0.0.0.0', port=5000)
