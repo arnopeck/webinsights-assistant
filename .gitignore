@@ -1,0 +1,14 @@
+# Escludi la directory venv dall'indicizzazione di git
+venv/
+
+# Altri file e cartelle comunemente esclusi
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.*
+*.sqlite3
+.DS_Store
+.idea/
+.vscode/
