@@ -10,7 +10,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 
-from src.webinsights_integration import create_webinsights_assistant
+from .webinsights_integration import create_webinsights_assistant
 
 # Configurazione del logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -28,7 +28,14 @@ def main():
     
     # Analizza gli argomenti
     args = parser.parse_args()
-    
+
+    # Richiedi interattivamente il property ID se non fornito
+    if not args.property_id or args.property_id == "GA4_PROPERTY_ID":
+        args.property_id = input("Inserisci il tuo Google Analytics Property ID (GA4): ").strip()
+        if not args.property_id:
+            logger.error("Property ID obbligatorio. Uscita.")
+            return
+
     # Imposta date predefinite se non specificate
     if not args.start_date:
         args.start_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")

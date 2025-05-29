@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from dotenv import load_dotenv
 
-from .webinsights_integration import WebInsightsAssistant
+from src.webinsights_integration import WebInsightsAssistant
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
