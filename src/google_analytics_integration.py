@@ -34,6 +34,9 @@ class GoogleAnalyticsIntegration:
         Args:
             credentials_path: Path to the Google Analytics credentials file
         """
+        # Use env variable if not provided
+        if credentials_path is None:
+            credentials_path = os.getenv("GA_CREDENTIALS_PATH", "ga_credentials.json")
         self.credentials_path = credentials_path
         self.authenticated = False
         logger.info("Google Analytics Integration initialized")
