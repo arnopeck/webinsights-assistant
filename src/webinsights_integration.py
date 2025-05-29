@@ -11,12 +11,12 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 
 from google.adk.orchestration import AgentApp
-from src.orchestration_agent import create_orchestration_agent
-from src.data_extraction_agent import create_data_extraction_agent
-from src.data_processing_agent import create_data_processing_agent
-from src.insight_generation_agent import create_insight_generation_agent
-from src.visualization_agent import create_visualization_agent
-from src.google_analytics_integration import create_google_analytics_integration
+from .orchestration_agent import create_orchestration_agent
+from .data_extraction_agent import create_data_extraction_agent
+from .data_processing_agent import create_data_processing_agent
+from .insight_generation_agent import create_insight_generation_agent
+from .visualization_agent import create_visualization_agent
+from .google_analytics_integration import create_google_analytics_integration
 
 # Configurazione del logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

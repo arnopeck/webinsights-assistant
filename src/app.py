@@ -7,7 +7,7 @@ del sistema WebInsights Assistant.
 
 import logging
 from google.adk.orchestration import AgentApp
-from src.orchestration_agent import create_orchestration_agent
+from .orchestration_agent import create_orchestration_agent
 
 # Configurazione del logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
