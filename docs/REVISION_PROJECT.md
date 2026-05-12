@@ -1,27 +1,69 @@
-# WebInsights Assistant — Revision Project
+# WebInsights Assistant — Product Rewrite Project
 
 ## Executive summary
 
-This repository should be treated as a hackathon-era prototype, not as a working production system. The README and technical documentation describe a strong product idea: a multi-agent assistant that makes GA4 data understandable and actionable for non-technical users. The current implementation, however, is largely simulated: authentication can succeed without real credentials, Google Analytics queries return hard-coded sample data, the ADK workflow is bypassed by a local simulation, and most agents produce canned outputs rather than computed insights.
+WebInsights Assistant should be rebuilt as a real product. The product idea is strong: an assistant that makes GA4 and related web analytics data understandable, actionable, and useful for people who do not want to fight with raw analytics interfaces.
 
-The correct revision strategy is therefore not a cosmetic refactor. The project needs a controlled rewrite around a smaller, testable MVP:
+The current implementation does not yet deliver that product. It is mostly a scaffold: authentication can succeed without real credentials, Google Analytics queries return hard-coded sample data, the agent workflow is bypassed by local simulation, and most agent outputs are canned rather than computed from real analytics data.
 
-1. Real GA4 data extraction.
-2. Typed analytics contracts between agents.
-3. Deterministic processing and validation before any LLM reasoning.
-4. Evidence-based insight generation.
-5. Report output that clearly distinguishes facts, computed metrics, and recommendations.
-6. Tests that fail when the system falls back to fake data unexpectedly.
+The correct revision strategy is therefore not cosmetic refactoring. The project needs a deliberate product rewrite around a smaller, credible MVP:
+
+1. Real analytics data extraction.
+2. Explicit demo/fixture mode only when requested.
+3. Typed contracts between workflow stages/agents.
+4. Deterministic processing and validation before any LLM reasoning.
+5. Evidence-based insight generation.
+6. Reports that clearly distinguish facts, computed metrics, interpretation, recommendations, and uncertainty.
+7. Tests that fail when the system silently falls back to fake data.
+
+## Product direction
+
+The goal is to build a useful analytics product, not a technical demo. The product should eventually help users answer questions such as:
+
+- What changed on my website during this period?
+- Which traffic channels are improving or declining?
+- Which pages deserve attention?
+- Are mobile users behaving differently from desktop users?
+- Are conversions/events configured well enough to trust the data?
+- What should I do next, and why?
+
+The first version should be narrow but real. It is better to generate one honest report from real or explicitly labelled fixture data than many impressive-looking reports built from placeholders.
+
+## Chosen stack
+
+The product should be rebuilt as a **web-first TypeScript product**.
+
+Chosen stack for the rewrite:
+
+- **Language:** TypeScript.
+- **Application framework:** Next.js.
+- **Runtime:** Node.js.
+- **UI:** React.
+- **Validation/contracts:** Zod.
+- **Database for saved reports/configuration:** PostgreSQL, preferably through Prisma.
+- **Charts:** Recharts or Tremor-style React components for the web UI; server-side chart export can be added later only if PDF/static reporting requires it.
+- **Testing:** Vitest for unit tests, Playwright later for end-to-end UI tests.
+- **Lint/format:** ESLint + Prettier.
+- **Deployment target:** Vercel or another simple Node-compatible platform.
+
+Reasoning:
+
+- The desired product must be easy to use, so a browser-based interface is more appropriate than a CLI-first Python tool.
+- TypeScript gives one language for UI, API routes, domain models, validation schemas, and tests.
+- Next.js makes it easy to start with a local/product UI and grow into a hosted product.
+- Zod keeps agent/workflow contracts explicit and testable.
+- PostgreSQL/Prisma keeps room for saved properties, report history, accounts, and scheduled reports.
+- Python can still be added later as a separate analytics worker if a specific data-science workload justifies it, but it should not be the foundation by inertia.
 
 ## Current-state assessment
 
 ### Product promise
 
-The intended product is valuable and still coherent:
+The intended product is valuable and coherent:
 
 - Make GA4 analytics easier to query and interpret.
 - Provide role-friendly reports for owners, marketers, developers, and content teams.
-- Coordinate specialist agents for extraction, processing, insight generation, visualization, and recommendations.
+- Coordinate specialist workflow stages for extraction, processing, insight generation, visualization, and recommendations.
 - Produce reports that are clear, shareable, and action-oriented.
 
 ### Implementation reality
@@ -30,8 +72,8 @@ The implementation does not yet deliver that promise.
 
 Observed issues:
 
-- The dependency list includes analytics/data/visualization packages but does not represent a complete modern ADK application setup.
-- `src/adk_compatibility.py` implements a fake compatibility layer that simulates an ADK-like interface instead of relying consistently on the real ADK runtime.
+- The dependency list includes analytics/data/visualization packages but does not represent a complete, reliable product setup.
+- `src/adk_compatibility.py` implements a local compatibility layer that simulates an ADK-like interface instead of relying consistently on a real runtime.
 - Multiple source files import `google.adk`, while other parts of the repository fall back to local simulated behavior. This makes runtime behavior ambiguous.
 - `src/google_analytics_integration.py` authenticates successfully even when the credentials file is missing and explicitly uses simulated data.
 - `src/data_extraction_agent.py`, `src/data_processing_agent.py`, `src/insight_generation_agent.py`, `src/visualization_agent.py`, and `src/recommendation_agent.py` return mostly canned values.
@@ -48,26 +90,28 @@ Observed issues:
 1. No silent fake data in production paths.
 2. No insight without traceable source metrics.
 3. No recommendation without explicit evidence and confidence.
-4. No agent output without schema validation.
+4. No workflow output without schema validation.
 5. No chart using hard-coded sample data when real data was requested.
 6. No tests that merely check placeholder structures.
+7. No technology decision made only because of the old implementation.
 
 ### MVP scope
 
 The first credible version should support:
 
-- CLI execution.
-- Service-account authentication to GA4.
+- Web UI for entering a GA4 property/date range and generating a report.
+- Explicit demo mode using labelled fixture data.
+- Production mode that fails clearly if GA4 credentials/access are missing.
 - A single GA4 property ID.
 - Date-range selection.
-- Four core reports:
+- Four core report sections:
   - traffic overview;
   - acquisition channels;
   - top pages / landing pages;
   - device breakdown.
 - Period-over-period comparison.
-- HTML and JSON output.
-- Transparent metadata showing property, date range, queried metrics, queried dimensions, and data freshness.
+- HTML/web report and JSON report model.
+- Transparent metadata showing property, date range, queried metrics, queried dimensions, data mode, and data freshness.
 
 ### Out of scope for MVP
 
@@ -75,14 +119,17 @@ The first credible version should support:
 - Scheduled reports.
 - Multi-property dashboards.
 - Multi-user authentication.
-- Public web UI.
+- Public SaaS billing/subscriptions.
 - Industry benchmarks unless an explicit, maintained benchmark source is added.
 - Generic technology trend recommendations not grounded in the site data.
 
 ## Target architecture
 
 ```text
-User request
+Browser UI
+   |
+   v
+Next.js Server Action / API Route
    |
    v
 Request Parser / Orchestrator
@@ -115,83 +162,87 @@ Request Parser / Orchestrator
    |       v
    |   Prioritized Actions
    |
-   +--> Visualization / Report Agent
+   +--> Visualization / Report Builder
            |
            v
-        HTML / JSON / Markdown report
+        Web report / JSON report model
 ```
 
-## Proposed package structure
+## Proposed repository structure
 
 ```text
-webinsights_assistant/
-├── pyproject.toml
-├── README.md
+webinsights-assistant/
+├── package.json
+├── next.config.ts
+├── tsconfig.json
 ├── .env.example
 ├── src/
-│   └── webinsights_assistant/
-│       ├── __init__.py
-│       ├── cli.py
-│       ├── config.py
-│       ├── logging.py
-│       ├── models/
-│       │   ├── requests.py
-│       │   ├── analytics.py
-│       │   ├── insights.py
-│       │   └── reports.py
-│       ├── integrations/
-│       │   └── ga4.py
-│       ├── agents/
-│       │   ├── orchestrator.py
-│       │   ├── query_planner.py
-│       │   ├── data_quality.py
-│       │   ├── metrics_processor.py
-│       │   ├── insight_generator.py
-│       │   ├── recommendation_generator.py
-│       │   └── report_generator.py
-│       ├── reporting/
-│       │   ├── html.py
-│       │   ├── json.py
-│       │   └── charts.py
-│       └── fixtures/
-│           └── ga4_sample_response.json
+│   ├── app/
+│   │   ├── page.tsx
+│   │   ├── reports/
+│   │   └── api/
+│   ├── components/
+│   │   ├── report/
+│   │   └── ui/
+│   ├── domain/
+│   │   ├── schemas/
+│   │   ├── analytics/
+│   │   ├── insights/
+│   │   └── reports/
+│   ├── agents/
+│   │   ├── orchestrator.ts
+│   │   ├── query-planner.ts
+│   │   ├── data-quality.ts
+│   │   ├── metrics-processor.ts
+│   │   ├── insight-generator.ts
+│   │   ├── recommendation-generator.ts
+│   │   └── report-builder.ts
+│   ├── integrations/
+│   │   └── ga4.ts
+│   ├── fixtures/
+│   │   └── ga4-demo-response.json
+│   └── lib/
+│       ├── env.ts
+│       └── logger.ts
 ├── tests/
 │   ├── unit/
 │   ├── integration/
 │   └── contract/
 └── docs/
     ├── REVISION_PROJECT.md
+    ├── STACK_DECISION.md
     └── AGENTS_REWRITE_PLAYBOOK.md
 ```
 
 ## Data contracts
 
-All agent boundaries should use typed models. Suggested core contracts:
+All workflow boundaries should use TypeScript types plus Zod schemas. Suggested core contracts:
 
 ### AnalyticsRequest
 
 Required fields:
 
-- `property_id`
-- `start_date`
-- `end_date`
-- `comparison_mode`: `none`, `previous_period`, `previous_year`
-- `requested_reports`: list of report identifiers
+- `propertyId`
+- `startDate`
+- `endDate`
+- `comparisonMode`: `none`, `previous_period`, `previous_year`
+- `requestedReports`: list of report identifiers
 - `audience`: `owner`, `marketing`, `developer`, `content`, `executive`
 - `language`: `en`, `it`
+- `dataMode`: `production`, `demo`, `fixture`
 
 ### AnalyticsDataset
 
 Required fields:
 
-- `source`: `ga4`
-- `property_id`
-- `date_range`
+- `source`: `ga4`, later optionally `search_console`, `bigquery`, etc.
+- `propertyId`
+- `dateRange`
 - `rows`
-- `metric_names`
-- `dimension_names`
-- `query_metadata`
-- `is_sampled`
+- `metricNames`
+- `dimensionNames`
+- `queryMetadata`
+- `isSampled`
 - `warnings`
 
 ### ComputedMetrics
@@ -204,7 +255,7 @@ Required fields:
 - `pages`
 - `devices`
 - `comparisons`
-- `data_quality`
+- `dataQuality`
 
 ### Insight
 
@@ -215,7 +266,7 @@ Required fields:
 - `evidence`: list of metric references
 - `explanation`
 - `confidence`: numeric score from 0 to 1
-- `recommended_followup`
+- `recommendedFollowup`
 
 ### Recommendation
 
@@ -223,23 +274,23 @@ Required fields:
 
 - `action`
 - `why`
-- `expected_impact`
+- `expectedImpact`
 - `effort`: `low`, `medium`, `high`
 - `priority`: `low`, `medium`, `high`
 - `evidence`
-- `owner_role`
+- `ownerRole`
 
 ## Agent collaboration model
 
-The rewrite should not use six isolated classes that return canned dictionaries. It should use agents as collaborative specialists with strict input/output contracts.
+The rewrite should not use isolated classes that return canned dictionaries. It should use collaborative workflow stages with strict input/output contracts.
 
-### 1. Orchestrator Agent
+### 1. Orchestrator
 
 Responsibilities:
 
 - Parse the user request into an `AnalyticsRequest`.
 - Select the required reports and date ranges.
-- Call specialist agents in the correct order.
+- Call specialist stages in the correct order.
 - Stop the workflow if data quality is insufficient.
 - Assemble the final response.
 
@@ -249,7 +300,7 @@ Must not:
 - Generate business recommendations directly.
 - Bypass validation.
 
-### 2. Query Planner Agent
+### 2. Query Planner
 
 Responsibilities:
 
@@ -263,18 +314,18 @@ Must not:
 - Call GA4 directly.
 - Interpret results.
 
-### 3. GA4 Extraction Agent
+### 3. GA4 Extractor
 
 Responsibilities:
 
-- Authenticate with Google Analytics Data API.
+- Authenticate with GA4.
 - Execute query specs.
 - Normalize raw API responses into `AnalyticsDataset`.
 - Return explicit errors for missing credentials, missing property access, invalid metrics, quota issues, and empty results.
 
 Must not:
 
-- Fall back to fake data unless `--demo` or an explicit test fixture mode is enabled.
+- Fall back to fake data unless demo or fixture mode is enabled explicitly.
 
 ### 4. Data Quality Agent
 
@@ -284,7 +335,7 @@ Responsibilities:
 - Detect likely configuration problems, for example zero events or no conversions.
 - Add warnings and block unsafe insight generation when data is not trustworthy.
 
-### 5. Metrics Processor Agent
+### 5. Metrics Processor
 
 Responsibilities:
 
@@ -295,7 +346,7 @@ Responsibilities:
 
 Must remain deterministic and testable.
 
-### 6. Insight Generator Agent
+### 6. Insight Generator
 
 Responsibilities:
 
@@ -313,33 +364,34 @@ Responsibilities:
 - Distinguish analytics-backed recommendations from hypotheses.
 - Avoid generic advice when evidence is weak.
 
-### 8. Report Generator Agent
+### 8. Report Builder
 
 Responsibilities:
 
-- Generate HTML, JSON, and optionally Markdown reports.
+- Generate the report model used by the web UI and JSON export.
 - Render charts from computed data only.
 - Include methodology and data-source metadata.
 - Make reports shareable and readable by non-technical users.
 
 ## Rewrite phases
 
-### Phase 0 — Stabilize the repository
+### Phase 0 — Product foundation
 
 Deliverables:
 
-- Add `pyproject.toml`.
-- Move code from `src/*.py` into a proper package.
-- Remove `.bak` files.
-- Add `.env.example`.
-- Add linting and formatting configuration.
+- Add Next.js/TypeScript project foundation.
+- Add Zod schemas for core contracts.
+- Add demo mode and fixture data.
+- Add Vitest.
+- Add ESLint/Prettier.
 - Add CI that runs tests.
 
 Acceptance criteria:
 
-- `python -m webinsights_assistant --help` works.
-- Tests run without modifying `sys.path` manually.
-- No production module imports test or compatibility code.
+- `npm run dev` starts the app.
+- The home page shows a simple report-generation form.
+- `npm test` runs cleanly.
+- No production path imports old Python simulation code.
 
 ### Phase 1 — Real GA4 integration
 
@@ -389,29 +441,29 @@ Acceptance criteria:
 
 Deliverables:
 
-- HTML report template.
-- JSON report output.
-- Optional Markdown summary.
+- Web report UI.
+- JSON export.
 - Clear language profiles for owner, marketing, developer, and content audiences.
 
 Acceptance criteria:
 
-- HTML and JSON outputs are generated from the same report model.
+- Outputs are generated from the same report model.
 - Report includes query manifest and data quality warnings.
 - Charts use real computed data.
 
-### Phase 5 — Modern agent runtime
+### Phase 5 — Persistence and productization
 
 Deliverables:
 
-- Replace fake compatibility layer with real current ADK abstractions or a deliberately framework-neutral workflow engine.
-- Implement observability for agent steps.
-- Add tracing of inputs/outputs per step.
+- Store generated reports.
+- Store property configuration.
+- Add report history.
+- Prepare authentication/user accounts if needed.
 
 Acceptance criteria:
 
-- There is one runtime model, not a mix of fake ADK and real ADK imports.
-- Every workflow step has logged inputs, outputs, timing, and errors.
+- A user can generate and revisit at least one saved report.
+- Sensitive credentials are not stored insecurely.
 
 ## Testing strategy
 
@@ -427,7 +479,7 @@ Acceptance criteria:
 
 ### Contract tests
 
-- Agent input/output schemas.
+- Agent/workflow input-output schemas.
 - Report schema.
 - GA4 fixture compatibility.
 
@@ -442,65 +494,59 @@ Add a test for each bug fixed during the rewrite. Never fix behavior without a t
 
 ## Migration strategy
 
-1. Keep the current prototype in place temporarily.
-2. Build the new package next to it.
-3. Add a new CLI entrypoint.
-4. Reproduce the current demo behavior using explicit fixture mode.
-5. Switch documentation to the new CLI only when MVP works.
-6. Remove or archive the old prototype modules.
+1. Keep the current Python implementation in place temporarily.
+2. Build the new Next.js product foundation next to it.
+3. Add a new web entrypoint.
+4. Reproduce demo behavior using explicit fixture mode.
+5. Switch documentation to the new product only when MVP works.
+6. Remove or archive old simulated Python modules when replaced.
 
 ## First implementation backlog
 
 High priority:
 
-- Create `pyproject.toml`.
-- Add `src/webinsights_assistant/` package.
-- Add `AnalyticsRequest`, `AnalyticsDataset`, `ComputedMetrics`, `Insight`, `Recommendation`, and `Report` models.
-- Implement fixture-mode GA4 extractor.
-- Implement production-mode credential validation.
-- Replace hard-coded chart/report data with report-model data.
+- Add Next.js/TypeScript foundation.
+- Add core Zod schemas.
+- Add web form for report generation.
+- Add fixture-mode extractor.
+- Add production-mode credential validation.
+- Add report model and simple report page.
 - Add tests for missing credentials and explicit demo mode.
 
 Medium priority:
 
 - Add role-specific summaries.
-- Add Markdown output.
-- Add report templates.
+- Add JSON export.
+- Add report history.
 - Add local cache for GA4 query results.
 
 Low priority:
 
-- Add web interface.
 - Add scheduled reports.
 - Add multi-property analysis.
 - Add BigQuery support.
+- Add a Python analytics worker only if TypeScript becomes limiting for analytics processing.
 
-## Definition of done for the rewrite
+## Definition of done for the first product slice
 
-The rewrite is credible when this command works without fake data:
+A credible first product slice must satisfy both production and demo paths.
 
-```bash
-webinsights analyze \
-  --property-id 123456789 \
-  --start-date 2026-04-01 \
-  --end-date 2026-04-30 \
-  --compare previous_period \
-  --audience owner \
-  --format html
-```
+Demo path:
 
-And when this command works with explicit fixtures:
+- User opens the web app.
+- User selects demo mode.
+- User chooses a date range and audience.
+- App generates a labelled demo report.
+- Report uses fixture data through the same pipeline used by production.
 
-```bash
-webinsights analyze \
-  --demo \
-  --start-date 2026-04-01 \
-  --end-date 2026-04-30 \
-  --format json
-```
+Production path:
 
-The first command must fail clearly if credentials or GA4 access are missing. The second command may use fixture data, but the output must clearly say it is demo data.
+- User enters a GA4 property ID.
+- Server validates credentials/access.
+- App queries GA4.
+- App generates a report with real metrics, data quality warnings, evidence-backed insights, and recommendations.
+- App fails clearly if credentials or GA4 access are missing.
 
 ## Notes for future implementation
 
-This document intentionally does not claim the rewrite has already been implemented. It defines the revision project, target architecture, agent collaboration model, backlog, and acceptance criteria. The next commit should start Phase 0 by adding packaging, typed models, fixture-mode extraction, and tests.
+This document intentionally does not claim the rewrite has already been implemented. It defines the product rewrite, chosen stack, target architecture, workflow model, backlog, and acceptance criteria. The next step is to create the Next.js/TypeScript foundation in a dedicated branch or direct commit, after reviewing the scaffold before saving it.
