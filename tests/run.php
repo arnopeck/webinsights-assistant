@@ -2,6 +2,18 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') {
+    http_response_code(200);
+    header('Content-Type: text/html; charset=utf-8');
+    echo '<!doctype html><html><head><meta charset="utf-8"><title>WebInsights Test</title></head><body>';
+    echo '<h1>WebInsights Assistant test runner</h1>';
+    echo '<p>This file is a CLI smoke test and should not be opened from the browser.</p>';
+    echo '<p>Open <a href="../public/status.php">public/status.php</a> to check the web installation.</p>';
+    echo '<p>To run this test from a terminal: <code>php tests/run.php</code></p>';
+    echo '</body></html>';
+    exit;
+}
+
 require_once __DIR__ . '/../app/autoload.php';
 
 use WebInsights\Reports\DemoReportBuilder;
