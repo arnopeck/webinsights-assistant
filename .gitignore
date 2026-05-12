@@ -1,15 +1,16 @@
-/vendor/
-/storage/*.sqlite
-/storage/*.sqlite-*
-/storage/reports/*.json
-/storage/config.local.php
-/.env
-.DS_Store
-.idea/
-.vscode/
+# Escludi la directory venv dall'indicizzazione di git
+venv/
+
+# Altri file e cartelle comunemente esclusi
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.env
+.env.*
+*.sqlite3
+.DS_Store
+.idea/
+.vscode/
 ga_credentials.json
 webinsights_report.html
